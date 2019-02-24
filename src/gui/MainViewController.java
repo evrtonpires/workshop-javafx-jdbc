@@ -52,7 +52,7 @@ public class MainViewController implements Initializable{
 																		//METODOS DA INTERFACE " Initializable "
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	@Override
-	public void initialize(URL uri, ResourceBundle rb) {
+	public void initialize(URL url, ResourceBundle rb) {
 		
 		
 	}
