@@ -1,18 +1,27 @@
 package gui;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
 
 import application.Main;
+import gui.util.Alerts;
+import gui.util.Utils;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.Pane;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import model.entities.Department;
 import model.services.DepartmentService;
@@ -45,8 +54,9 @@ public class DepartmentListController implements Initializable {
 //---------------------------------------------------------------------------------------------------------------------------------------------------------
 	
 	@FXML
-	public void onBtNovoCadastroAction() {
-		System.out.println("onBtNovoCadastroAction");
+	public void onBtNovoCadastroAction(ActionEvent event) {
+		Stage parentStage = Utils.currenStage(event);//referencia com Stage atual
+		createDialogForm("/gui/DepartmentForm.fxml", parentStage);//passando a referencia para criar a janela do formulario
 	}
 	
 //---------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -88,5 +98,24 @@ private void initializeNodes() {
 		tableViewDepartment.setItems(obsList);
 				
 	}
-
+//---------------------------------------------------------------------------------------------------------------------------------------------------------
+	private void createDialogForm(String absoluteName , Stage parentStage) {//janela de dialogo
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));//instanciação
+			Pane pane = loader.load(); //carregamento painel
+			
+			Stage dialogStage = new Stage();
+			
+			dialogStage.setTitle("Dados do Departamento");//titulo da janela
+			dialogStage.setScene(new Scene(pane));//nova cena do palco
+			dialogStage.setResizable(false);//diz se a janela pode ou nao ser redimencionada 
+			dialogStage.initOwner(parentStage);//Stage pai dessa janela "parentStage"
+			dialogStage.initModality(Modality.WINDOW_MODAL);//janela fica travada enquanto a janela estiver aberta, nao acessa a anterior
+			dialogStage.showAndWait();//funcao para carregar a janela do formulario, para preencher um novo departamento
+			
+			}
+		catch(IOException e) {
+			Alerts.showAlert("IO Exception", "Erro Carregamento de Tela", e.getMessage(), AlertType.ERROR);
+		}
+	}
 }
