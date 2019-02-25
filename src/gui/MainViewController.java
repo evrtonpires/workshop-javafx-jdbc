@@ -15,6 +15,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.VBox;
+import model.services.DepartmentService;
 
 public class MainViewController implements Initializable{
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -41,7 +42,7 @@ public class MainViewController implements Initializable{
 	}
 	@FXML
 	public void onMenuItemDepartamentoAction() {
-		loadView("/gui/DepartmentList.fxml");
+		loadView2("/gui/DepartmentList.fxml");
 	}
 	
 	@FXML
@@ -87,5 +88,38 @@ public class MainViewController implements Initializable{
 			Alerts.showAlert("IO Exception", "Erro Carregando a Pagina", e.getMessage(), AlertType.ERROR);
 		}
 	}
-
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	private synchronized void loadView2(String absoluteName) {// synchronized -  garantir que todo o processo seja interrompido durante o multtreding
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));//instanciação
+			
+			VBox newVBox = loader.load();
+			
+			Scene mainScene = Main.getMainScene();//referencia CENA
+		
+			VBox mainVBox =(VBox)//Casting para referencia do VBOX Principal = Classe MainViewController
+				((ScrollPane) //Casting para referencia do ScrollPane = Classe MainView
+				mainScene.getRoot())//pega o primeiro elemento da View = ScrollPane
+				.getContent();//referencia para o que tiver dentro do ScrollPane
+		
+		
+		//refencia para o menu
+		
+		Node mainMenu = mainVBox.getChildren().get(0);// pegando o primeiro filho do VBOX da janela principal
+		
+		mainVBox.getChildren().clear();// limpar todos os filhos do mainVBOX
+		
+		mainVBox.getChildren().add(mainMenu);// adicionando o Menu
+		mainVBox.getChildren().addAll(newVBox.getChildren());//adicionando os filhos do NewVBOX
+		
+		DepartmentListController controller = loader.getController();// objeto usado para carregar a VIEW , quanto tambem acessar o controller
+		controller.setDepartmentService(new DepartmentService());//injetando a dependencia
+		controller.updateTableView();//chamando para atualizar os dados na tela do tableView
+		
+		}
+		catch(IOException e) {
+			Alerts.showAlert("IO Exception", "Erro Carregando a Pagina", e.getMessage(), AlertType.ERROR);
+		}
+	}
+	
 }
