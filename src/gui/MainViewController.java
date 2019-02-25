@@ -3,6 +3,7 @@ package gui;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.function.Consumer;
 
 import application.Main;
 import gui.util.Alerts;
@@ -42,12 +43,15 @@ public class MainViewController implements Initializable{
 	}
 	@FXML
 	public void onMenuItemDepartamentoAction() {
-		loadView2("/gui/DepartmentList.fxml");
+		loadView("/gui/DepartmentList.fxml",(DepartmentListController controller )-> {// APOS A VIRGULA - parametro de uma funcao para incializar o controlador - EXPRESSAO LAMBDA
+			controller.setDepartmentService( new DepartmentService());
+			controller.updateTableView();
+		});
 	}
 	
 	@FXML
 	public void onMenuItemAboutAction() {
-	loadView("/gui/About.fxml");
+	loadView("/gui/About.fxml", x -> {});
 	}
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 																		//METODOS DA INTERFACE " Initializable "
@@ -60,7 +64,7 @@ public class MainViewController implements Initializable{
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 																		//METODOS DA INTERFACE SECUNDARIA, CRIANDO OUTRA TELA.
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
-	private synchronized void loadView(String absoluteName) {// synchronized -  garantir que todo o processo seja interrompido durante o multtreding
+	private synchronized <T> void  loadView(String absoluteName,Consumer<T> initializingAction) {// synchronized -  garantir que todo o processo seja interrompido durante o multtreding
 		try {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));//instanciação
 			
@@ -82,6 +86,12 @@ public class MainViewController implements Initializable{
 		
 		mainVBox.getChildren().add(mainMenu);// adicionando o Menu
 		mainVBox.getChildren().addAll(newVBox.getChildren());//adicionando os filhos do NewVBOX
+		
+		//comando para ativar a funcao que passar no initializingAction
+		T controller = loader.getController();//retornar um DepartmentListController
+		
+		// executar o initializingAction
+		initializingAction.accept(controller);
 		
 		}
 		catch(IOException e) {
@@ -89,37 +99,6 @@ public class MainViewController implements Initializable{
 		}
 	}
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	private synchronized void loadView2(String absoluteName) {// synchronized -  garantir que todo o processo seja interrompido durante o multtreding
-		try {
-			FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));//instanciação
-			
-			VBox newVBox = loader.load();
-			
-			Scene mainScene = Main.getMainScene();//referencia CENA
-		
-			VBox mainVBox =(VBox)//Casting para referencia do VBOX Principal = Classe MainViewController
-				((ScrollPane) //Casting para referencia do ScrollPane = Classe MainView
-				mainScene.getRoot())//pega o primeiro elemento da View = ScrollPane
-				.getContent();//referencia para o que tiver dentro do ScrollPane
-		
-		
-		//refencia para o menu
-		
-		Node mainMenu = mainVBox.getChildren().get(0);// pegando o primeiro filho do VBOX da janela principal
-		
-		mainVBox.getChildren().clear();// limpar todos os filhos do mainVBOX
-		
-		mainVBox.getChildren().add(mainMenu);// adicionando o Menu
-		mainVBox.getChildren().addAll(newVBox.getChildren());//adicionando os filhos do NewVBOX
-		
-		DepartmentListController controller = loader.getController();// objeto usado para carregar a VIEW , quanto tambem acessar o controller
-		controller.setDepartmentService(new DepartmentService());//injetando a dependencia
-		controller.updateTableView();//chamando para atualizar os dados na tela do tableView
-		
-		}
-		catch(IOException e) {
-			Alerts.showAlert("IO Exception", "Erro Carregando a Pagina", e.getMessage(), AlertType.ERROR);
-		}
-	}
+	
 	
 }
