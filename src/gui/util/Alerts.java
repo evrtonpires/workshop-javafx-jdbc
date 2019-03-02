@@ -1,7 +1,12 @@
 package gui.util;
 
+
+
+import java.util.Optional;
+
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 
 public class Alerts {
 
@@ -12,4 +17,15 @@ public class Alerts {
 		alert.setContentText(content);
 		alert.show();
 	}
+		
+		
+		//confirmar se apertou em sim ou em nao
+		public static Optional<ButtonType> Confirmacao(String titulo, String conteudo) {
+			Alert alert = new Alert(AlertType.CONFIRMATION);
+			alert.setTitle(titulo);
+			alert.setHeaderText(null);
+			alert.setContentText(conteudo);
+			return alert.showAndWait();
+			}
+	
 }
