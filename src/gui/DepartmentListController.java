@@ -107,7 +107,9 @@ private void initializeNodes() {
 			
 			DepartmentFormController controller = loader.getController();//pegou o controlador da tela que foi carregada
 			controller.setDepartment(obj);
+			controller.setDepartmentService(new DepartmentService());//injeção de dependencia para salvar no banco
 			controller.updateFormData();//carregar os dados do objeto no formulario
+			
 			
 			Stage dialogStage = new Stage();
 			
