@@ -1,19 +1,22 @@
 package gui;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import db.DbException;
+import gui.listeners.DataChangeListener;
 import gui.util.Alerts;
 import gui.util.Constraints;
 import gui.util.Utils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Alert.AlertType;
 import model.entities.Department;
 import model.services.DepartmentService;
 
@@ -25,6 +28,8 @@ public class DepartmentFormController implements Initializable{
 	private Department entity;
 	
 	private DepartmentService service;
+	// permitem outros objetos se inscreverem nessa lista e receberem o evento
+	private List<DataChangeListener> dataChangeListeners = new ArrayList<>();
 	
 	@FXML
 	private TextField txtId;
@@ -59,12 +64,23 @@ public class DepartmentFormController implements Initializable{
 		try {
 		entity = getFormData();//vai pegar os dados nas caixas dos formularios e instanciar um departamento
 		service.saveOrUpdate(entity);//salva no banco de dados
+		
+		notifyDataChangeListeners();//Método que faz a notificação dos listeners
+		
 		Utils.currenStage(event).close();//pegando referencia da janela atual, para fechar a janela após salvar os dados
 		}
 		catch(DbException e ) {
 			Alerts.showAlert("Erro para salvar o Objeto", null, e.getMessage(), AlertType.ERROR);
 		}
 	}
+	//classe que emite o Evento
+	private void notifyDataChangeListeners() {
+		for(DataChangeListener listener : dataChangeListeners) {
+			listener.onDataChanged();
+		}
+		
+	}
+
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	//retorna os dados do formulario e cria um novo objeto
 	private Department getFormData() {
@@ -98,8 +114,13 @@ public class DepartmentFormController implements Initializable{
 		txtId.setText(String.valueOf(entity.getName()));
 		
 	}
-	//---------------------------------------------------------------------------------------------------------------------------------------------------------	
+//---------------------------------------------------------------------------------------------------------------------------------------------------------	
 	public void setDepartmentService(DepartmentService service) {
 		this.service = service;
+	}
+//---------------------------------------------------------------------------------------------------------------------------------------------------------
+	//outros objetos que implementam a interface podem se inscrever  para receber o evento da classe
+	public void subscribeDataChangeListener(DataChangeListener listener) {
+		dataChangeListeners.add(listener);
 	}
 }

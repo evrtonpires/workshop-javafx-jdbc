@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 import application.Main;
+import gui.listeners.DataChangeListener;
 import gui.util.Alerts;
 import gui.util.Utils;
 import javafx.collections.FXCollections;
@@ -26,7 +27,7 @@ import javafx.stage.Stage;
 import model.entities.Department;
 import model.services.DepartmentService;
 
-public class DepartmentListController implements Initializable {
+public class DepartmentListController implements Initializable , DataChangeListener{
 	
 //---------------------------------------------------------------------------------------------------------------------------------------------------------
 																//ITENS DE CONTROLES DE TELA
@@ -108,6 +109,7 @@ private void initializeNodes() {
 			DepartmentFormController controller = loader.getController();//pegou o controlador da tela que foi carregada
 			controller.setDepartment(obj);
 			controller.setDepartmentService(new DepartmentService());//injeção de dependencia para salvar no banco
+			controller.subscribeDataChangeListener(this);//esta se inscrevendo para receber o evento, que quando for disparado, executara """" public void onDataChanged() """"
 			controller.updateFormData();//carregar os dados do objeto no formulario
 			
 			
@@ -125,4 +127,11 @@ private void initializeNodes() {
 			Alerts.showAlert("IO Exception", "Erro Carregamento de Tela", e.getMessage(), AlertType.ERROR);
 		}
 	}
+
+@Override
+public void onDataChanged() {
+	updateTableView();
+	//quando receber a notificação que os dados foram alterados, irá atualizar os dados da tabela
+	//usando o metodo updateTableView();
+}
 }
