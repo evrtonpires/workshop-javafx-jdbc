@@ -3,7 +3,9 @@ package gui;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 import db.DbException;
 import gui.listeners.DataChangeListener;
@@ -18,6 +20,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import model.entities.Department;
+import model.exceptions.ValidationException;
 import model.services.DepartmentService;
 
 public class DepartmentFormController implements Initializable{
@@ -30,6 +33,8 @@ public class DepartmentFormController implements Initializable{
 	private DepartmentService service;
 	// permitem outros objetos se inscreverem nessa lista e receberem o evento
 	private List<DataChangeListener> dataChangeListeners = new ArrayList<>();
+	
+	
 	
 	@FXML
 	private TextField txtId;
@@ -69,6 +74,11 @@ public class DepartmentFormController implements Initializable{
 		
 		Utils.currenStage(event).close();//pegando referencia da janela atual, para fechar a janela após salvar os dados
 		}
+		
+		catch(ValidationException e) {
+			setErrorMessages(e.getErrors());
+		}
+		
 		catch(DbException e ) {
 			Alerts.showAlert("Erro para salvar o Objeto", null, e.getMessage(), AlertType.ERROR);
 		}
@@ -85,10 +95,18 @@ public class DepartmentFormController implements Initializable{
 	//retorna os dados do formulario e cria um novo objeto
 	private Department getFormData() {
 		Department obj = new Department();
-		obj.setId(Utils.tryParseToInt(txtId.getText()));//vai converter o String que foi digitado na caixa de texto para inteiro
-		obj.setName(txtNome.getText()); // nome do novo departamento
+		ValidationException exception = new ValidationException("Erro de Validação");//Instanciou a exceção
 		
-		return obj;
+		obj.setId(Utils.tryParseToInt(txtId.getText()));//vai converter o String que foi digitado na caixa de texto para inteiro
+		//condição para verificar se a caixa onde recebe o nome do Departamento esta vazia
+		if(txtNome.getText() == null || txtNome.getText().trim().equals("")) {//trim() : eliminar os espaços em branco quem tenha no inicio ou no final
+			exception.addError("Nome", " O campo não pode ser vazio !");
+		}
+			obj.setName(txtNome.getText()); // nome do novo departamento
+		if(exception.getErrors().size() > 0 ) {
+			throw exception;// lança a exceção caso exista algum erro
+		}
+		return obj;//se os ifs falharem ira retornar o objeto
 	}
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	@FXML
@@ -105,7 +123,7 @@ public class DepartmentFormController implements Initializable{
 		Constraints.setTextFieldInteger(txtId);// ide só aceita numero inteiro
 		Constraints.setTextFieldMaxLength(txtNome, 30); // nome tera no maximo 30 caracteres 
 	}
-	
+//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	public void updateFormData() {
 		if(entity == null) {
 			throw new IllegalStateException("Valor da Entidade é Nulo");
@@ -123,4 +141,14 @@ public class DepartmentFormController implements Initializable{
 	public void subscribeDataChangeListener(DataChangeListener listener) {
 		dataChangeListeners.add(listener);
 	}
+//---------------------------------------------------------------------------------------------------------------------------------------------------------	
+	//preencher as mensagens na caixa de texto
+	private void setErrorMessages(Map<String , String> errors) {
+		Set<String> fields = errors.keySet();
+		
+		if (fields.contains("Nome")) {
+			labelErroNome.setText(errors.get("Nome"));//pegando a mensagem correspondente ao campo "Nome" , e setando a mensagem  no labelErrorName
+		}
+	}
+	
 }
